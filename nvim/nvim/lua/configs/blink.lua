@@ -1,0 +1,48 @@
+local opts = {
+  snippets = { preset = "luasnip" },
+  cmdline = {
+    enabled = true,
+  },
+  appearance = { nerd_font_variant = "normal" },
+  fuzzy = {
+    implementation = "prefer_rust_with_warning",
+
+    sorts = {
+      "exact",
+      "score",
+      "sort_text",
+    },
+  },
+
+  signature = { enabled = true, window = { border = "single", show_documentation = false } },
+  sources = { default = { "lsp", "snippets", "buffer", "path" } },
+
+  keymap = {
+    preset = "default",
+    ["<CR>"] = { "accept", "fallback" },
+    ["<C-b>"] = { "scroll_documentation_up", "fallback" },
+    ["<C-f>"] = { "scroll_documentation_down", "fallback" },
+    ["<Tab>"] = {},
+    ["<S-Tab>"] = {},
+    ["<C-space>"] = { "hide", "show" },
+  },
+
+  completion = {
+    ghost_text = { enabled = false },
+    documentation = {
+      auto_show = true,
+      auto_show_delay_ms = 200,
+      window = { border = "none" },
+    },
+    accept = { auto_brackets = { enabled = true } },
+    list = {
+      selection = {
+        preselect = true,
+        auto_insert = true,
+      },
+    },
+    -- menu = require("nvchad.blink").menu,
+  },
+}
+
+return opts

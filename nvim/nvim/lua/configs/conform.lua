@@ -1,9 +1,17 @@
 local options = {
   formatters_by_ft = {
-    -- lua = { "stylua" },
+    lua = { "stylua" },
   },
 
-  formatters = {},
+  format_on_save = {
+    timeout_ms = 500,
+    lsp_fallback = true,
+  },
+
+  lsp_format = {
+    async = true,
+    timeout_ms = 1000,
+  },
 }
 
 return options
