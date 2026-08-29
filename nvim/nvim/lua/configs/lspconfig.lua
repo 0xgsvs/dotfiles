@@ -2,7 +2,7 @@ local M = {}
 local map = vim.keymap.set
 
 -- export on_attach & capabilities
-M.on_attach = function(_, bufnr)
+M.on_attach = function(client, bufnr)
   local function opts(desc)
     return { buffer = bufnr, desc = "LSP " .. desc }
   end
@@ -39,9 +39,13 @@ M.on_attach = function(_, bufnr)
   map("n", "<leader>dS", function()
     vim.diagnostic.setqflist()
   end, { desc = "LSP diagnostics (all buffers)" })
+
+  -- Codelens setup
+  if client.server_capabilities.codeLensProvider then
+    vim.lsp.codelens.enable(true, { bufnr = bufnr })
+  end
 end
 
--- disable semanticTokens
 M.on_init = function(client, _)
   if client:supports_method "textDocument/semanticTokens" then
     client.server_capabilities.semanticTokensProvider = nil
@@ -65,6 +69,7 @@ vim.diagnostic.config {
 vim.lsp.config("rust_analyzer", {})
 vim.lsp.config("ts_ls", {})
 vim.lsp.config("zls", {})
+vim.lsp.config("nixd", {})
 vim.lsp.config("lua_ls", {
   settings = {
     Lua = {
@@ -89,6 +94,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
 vim.lsp.config("*", { capabilities = M.capabilities(), on_init = M.on_init })
 
-local servers = { "rust_analyzer", "lua_ls", "ts_ls", "zls" }
+local servers = { "rust_analyzer", "lua_ls", "ts_ls", "zls", "nixd" }
 
 vim.lsp.enable(servers)

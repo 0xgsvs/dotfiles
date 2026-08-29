@@ -36,7 +36,7 @@ $env.config.display_errors.exit_code = true
 # path add ($env.CARGO_HOME | path join "bin")
 
 # Example: Remove duplicate directories:
-# $env.PATH = ($env.PATH | uniq)
+$env.PATH = ($env.PATH | uniq)
 
 $env.PATH ++= [
     $"($env.HOME)/.local/share/solana/install/active_release/bin"

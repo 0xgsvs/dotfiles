@@ -14,7 +14,7 @@ local opts = {
     },
   },
 
-  signature = { enabled = true, window = { border = "single", show_documentation = false } },
+  signature = { enabled = false, window = { border = "single", show_documentation = false } },
   sources = { default = { "lsp", "snippets", "buffer", "path" } },
 
   keymap = {
@@ -22,6 +22,7 @@ local opts = {
     ["<CR>"] = { "accept", "fallback" },
     ["<C-b>"] = { "scroll_documentation_up", "fallback" },
     ["<C-f>"] = { "scroll_documentation_down", "fallback" },
+    ["<C-e>"] = { "hide_documentation", "show_documentation" },
     ["<Tab>"] = {},
     ["<S-Tab>"] = {},
     ["<C-space>"] = { "hide", "show" },
@@ -30,18 +31,20 @@ local opts = {
   completion = {
     ghost_text = { enabled = false },
     documentation = {
-      auto_show = true,
-      auto_show_delay_ms = 200,
+      auto_show = false,
+      auto_show_delay_ms = 0,
       window = { border = "none" },
     },
     accept = { auto_brackets = { enabled = true } },
     list = {
       selection = {
-        preselect = true,
+        preselect = false,
         auto_insert = true,
       },
     },
-    -- menu = require("nvchad.blink").menu,
+    menu = {
+      auto_show = true,
+    },
   },
 }
 

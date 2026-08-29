@@ -55,33 +55,8 @@ return {
     end,
     config = function() end,
   },
-  -- code inline completion
-  {
-    "supermaven-inc/supermaven-nvim",
-    lazy = false,
-    event = "BufRead",
-    config = function()
-      require("supermaven-nvim").setup {
-        keymaps = {
-          accept_suggestion = "<C-enter>",
-        },
-      }
-    end,
-  },
-  -- tree sitter parser management
-  {
-    "romus204/tree-sitter-manager.nvim",
-    cmd = { "TSManager" },
-    dependencies = {},
-    config = function()
-      require("tree-sitter-manager").setup {
-        ensure_installed = { "rust" },
-        auto_install = true,
-        highlight = true,
-        languages = {}, -- override or add new parser sources
-      }
-    end,
-  },
+  -- nvim treesitter is back from dead
+  -- TODO: add nvim-treesitter again and remove custom parsers
   -- snippet plugin
   {
     "L3MON4D3/LuaSnip",
@@ -148,15 +123,20 @@ return {
         mode = { "n", "x", "o" },
         desc = "Flash Jump",
       },
-      { "f", "<cmd>noh<CR><ESC>", mode = "v" },
     },
     opts = {
       jump = {
         autojump = true, -- Automatically jump when there's only one match
       },
+      modes = {
+        char = {
+          enabled = false, -- stops flash from hooking f/F/t/T
+        },
+      },
     },
-    config = function()
-      pcall(vim.keymap.del, "n", "f")
+    config = function(_, opts)
+      require("flash").setup(opts)
+      vim.keymap.set({ "n", "v" }, "f", "<ESC>", { noremap = true, silent = true })
     end,
   },
   -- git stuff
@@ -171,7 +151,7 @@ return {
     "echasnovski/mini.ai",
     version = false,
     config = function()
-      require("mini.ai").setup()
+      require("mini.ai").setup {}
     end,
   },
   -- mini move
@@ -229,16 +209,7 @@ return {
       require("blink.cmp").build():wait(60000)
     end,
     opts = function()
-      --     return require "configs.blink"
-    end,
-  },
-  {
-    "nicolasgb/jj.nvim",
-    cmd = "J",
-    version = "*", -- Use latest stable release
-    branch = "main",
-    config = function()
-      require("jj").setup {}
+      return require "configs.blink"
     end,
   },
 }
