@@ -1,101 +1,48 @@
-# theme = "onedark"
-theme = "gruvbox-material"
-# theme = "ashen"
+# config for custom patched binary
 
-# ====================================================================================================
+# theme = "gruvbox-material"
+theme = "gruvbox_material_dark_hard"
+
+# =============================================================================
 
 [editor]
-scrolloff = 28
-continue-comments = false
-bufferline = "multiple"
-trim-final-newlines = true
-trim-trailing-whitespace = true
-clipboard-provider = "x-clip"
-line-number = "relative"
-color-modes = true
-completion-trigger-len = 1
-true-color = true
-mouse = false
-
-soft-wrap.enable = true
+clipboard-provider = "win32-yank"
 cursor-shape.insert = "bar"
 file-picker.hidden = false
+rulers = [80, 120]
 
-# ====================================================================================================
+# =============================================================================
 
 [editor.lsp]
-display-progress-messages = true
-display-inlay-hints = true
+display-inlay-hints = false
 
-# ====================================================================================================
-
-# ====================================================================================================
-# TODO
-# a.in selection mode (visual) go to word with gw/s while maintaining the selection
-# b.in selection mode move the selected content with alt + h,j,k,l
-# c.add old files picker
-# d.when closing and opening files the cursor should remember the previous position the same goes with copying the entire file
-# ====================================================================================================
-
-# ====================================================================================================
+# =============================================================================
 
 [keys.select]
-"A-e" = "match_brackets"
-"S-h" = "goto_line_start"
-"S-l" = "goto_line_end"
 "f" = ["normal_mode", "collapse_selection"]
-"S" = "select_regex"
-"space" = { ";" = "toggle_comments" }
 
 [keys.normal]
-"A-e" = "match_brackets"
 "C-c" = "@%y"
-"S-h" = ["insert_at_line_start", "normal_mode"]
-"S-l" = "goto_line_end"
-"tab" = ":buffer-next"
-"S-tab" = ":buffer-previous"
+"A-j" = "shrink_selection"
+"A-k" = "expand_selection"
 
-[keys.normal.space]
-";" = "toggle_comments"
-"o" = ":config-reload"
-"A" = "file_explorer"
-"a" = "file_explorer_in_current_buffer_directory"
-"e" = "file_picker_in_current_buffer_directory"
-"E" = "file_picker_in_current_directory"
-
-"F" = "no_op"   #file picker at currernt working directory moved to space.E
-"r" = "no_op"   #rename symbol now achieved by space.c.r
-"'" = "no_op"   #open last picker
-"Y" = "no_op"   #yank main selection to the clipboard
-"P" = "no_op"   #paster clipboard before selection
-"d" = "no_op"   #diagnostics picker moved to space.s.d
-"D" = "no_op"   #diagnostics picker moved to space.s.D
-"C" = "no_op"   #block commnet/uncomment selection
-"/" = "no_op"   #global search moved to space.s.g
-"?" = "no_op"   #command palette moved to space.s.k
-"A-c" = "no_op" #line comment/uncomment selections
-
-[keys.normal.space.c]
-"a" = "code_action"
-"r" = "rename_symbol"
-
-[keys.normal.space.s]
-"k" = "command_palette"
-"g" = "global_search"
-"d" = "diagnostics_picker"
-"D" = "workspace_diagnostics_picker"
-
-[keys.normal.space.f]
-"b" = "buffer_picker"
+[keys.normal.';']
+"e" = ":write-quit-all"
+"w" = ":write-all"
+"n" = ":quit-all!"
+"s" = "search"
 
 [keys.normal.space.b]
 "d" = ":buffer-close"
 "o" = ":buffer-close-others"
 
-[keys.insert]
-"A-h" = "move_char_left"
-"A-l" = "move_char_right"
-"A-j" = "move_line_down"
-"A-k" = "move_line_up"
-
-"j" = { "k" = "normal_mode" }
+# =============================================================================
+# TODO
+# b.in selection mode move the selected content with alt + h,j,k,l
+# c.add old files picker, session retrival
+# d.when closing and opening files the cursor should remember the previous
+# position the same goes with copying the entire file
+# e.mim does not work as intended (done)
+# f.There is a patch for 'D' in evil helix repo
+# g.paste does not work as intended
+# =============================================================================
