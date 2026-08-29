@@ -1,47 +1,65 @@
 function fish_greeting
-    echo "Happy coding! May your commits be clean and your builds fast."
+    echo "Dont push to Production on Friday!"
 end
 
 if status is-interactive
 end
 
+# auto starting zellij have some drawabacks
+# if status is-interactive; and not set -q ZELLIJ
+#     zellij
+# end
+
 mise activate fish | source
-pitchfork activate fish | source
 atuin init fish | source
 
 complete -c j -w jj
 abbr -a jc 'jj git clone'
+abbr -a js 'jj st'
+abbr -a jd 'jj desc'
 abbr -a jf 'jj git fetch'
 abbr -a jp 'jj git push'
 abbr -a ji 'jj git init'
 abbr -a jr 'jj git remote'
+abbr -a jn 'jj new'
 
-if status is-interactive; and not set -q ZELLIJ
-    zellij
-end
+abbr -a z zellij
+abbr -a zl 'zellij ls'
+abbr -a za 'zellij a'
+abbr -a zs 'zellij -s'
+abbr -a zk 'zellij k'
+abbr -a zd 'zellij d'
+abbr -a zka 'zellij ka'
+abbr -a zda 'zellij da'
 
-fish_add_path /opt/android-sdk/platform-tools
-fish_add_path "$HOME/.local/share/nvim/mason/bin"
+abbr -a lj jjui
+abbr -a c clear
+abbr -a e exit
+abbr -a n nvim
+abbr -a h hx
+abbr -a cn 'clear && nvim'
+abbr -a rmf 'rm -rf'
+abbr -a cdd 'cd ..'
+abbr -a sos 'source ~/.config/fish/config.fish'
+# abbr -a dev 'nom develop --command fish'
+
+set -Ux NH_HOME_FLAKE /home/greed/.config/nix_system/
+
+set -gx RUSTUP_HOME "$HOME/.config/rustup"
+set -gx CARGO_HOME "$HOME/.config/cargo"
+set -gx XDG_RUNTIME_DIR /tmp
+
 fish_add_path "$HOME/.local/share/mise/shims"
-fish_add_path "$HOME/.cyfrin/bin"
+fish_add_path "$HOME/projects/maintain/nixpkgs/result/bin"
 fish_add_path "$HOME/.bun/bin"
 fish_add_path "$HOME/.config/cargo/bin"
-fish_add_path "$HOME/.local/share/solana/install/active_release/bin/"
 fish_add_path "$HOME/.local/bin"
-fish_add_path "$HOME/.foundry/bin"
 
 set -gx CORE_RETROARCH /home/greed/.local/share/Steam/steamapps/common/RetroArch/cores/
 set -gx EDITOR nvim
 set -gx VISUAL nvim
 
-set -gx FLAKE /home/codezeros/.config/nix_system
-set -gx NH_HOME_FLAKE /home/codezeros/.config/nix_system
-
-# set -gx SCCACHE_REDIS_ENDPOINT "redis://192.168.109.33:6379"
-# set -gx SCCACHE_REDIS_PASSWORD supersecretpassword
-
-set -gx RUSTUP_HOME "$HOME/.config/rustup"
-set -gx CARGO_HOME "$HOME/.config/cargo"
+set -gx FIRECRAWL_API_URL http://localhost:3002
 
 # Zoxide
 set -gx _ZO_CD zi
@@ -50,59 +68,7 @@ zoxide init --cmd cd fish | source
 alias l='eza -l --icons --group-directories-first '
 alias la='eza -la --icons --group-directories-first '
 alias ls='eza --icons --group-directories-first --tree --level=2'
-alias rmf="rm -rf"
-alias cn="clear && nvim"
-alias cdd="cd .."
-alias j="jj"
-alias lg="lazygit"
-alias lj="jjui"
-alias ld="lazydocker"
-alias c="clear"
-alias e="exit"
-alias wifi="impala"
-alias blue="bluetui"
-alias battery="acpi -b"
-alias h="hx"
-alias n="nvim"
-alias p="poetry"
-alias pya="source .venv/bin/activate.fish"
-alias pyd="deactivate"
-
-function stdrs
-    set -l original_dir (pwd)
-    cd (rustc --print sysroot)/lib/rustlib/src/rust/library/core/src
-    nvim
-    cd $original_dir
-end
-
-function cdp
-    set -l dir (fd . / --type d 2>/dev/null | fzf --preview 'eza -la --color=always {}' --preview-window=right:50%)
-    if test -n "$dir"
-        echo "$dir"
-    end
-end
-
-function cdf
-    set -l dir (fd . / --type d | fzf --preview 'eza -la --color=always {}' --preview-window=right:50%)
-    if test -n "$dir"
-        cd "$dir"
-        clear
-    end
-end
-
-function gitp
-    git config --local user.name Venkat-Sundaraneedi
-    git config --local user.email "venkat.subrahmanyam.34@gmail.com"
-    echo "Git user.name set to: Venkat-Sundaraneedi"
-    echo "Git user.email set to: venkat.subrahmanyam.34@gmail.com"
-end
-
-function gitc
-    git config --local user.name wdcs-venkatsundaraneedi
-    git config --local user.email "venkat.sundaraneedi@codezeros.com"
-    echo "Git user.name set to: wdcs-venkatsundaraneedi"
-    echo "Git user.email set to: venkat.sundaraneedi@codezeros.com"
-end
+alias please='sudo'
 
 function toggle_vi_mode
     if test "$fish_bind_mode" = default

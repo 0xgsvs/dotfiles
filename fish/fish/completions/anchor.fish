@@ -34,7 +34,10 @@ complete -c anchor -n "__fish_anchor_needs_command" -f -a "build" -d 'Builds the
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "expand" -d 'Expands macros (wrapper around cargo expand)'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "verify" -d 'Verifies the on-chain bytecode matches the locally compiled artifact. Run this command inside a program subdirectory, i.e., in the dir containing the program\'s Cargo.toml'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "test" -d 'Runs integration tests'
+complete -c anchor -n "__fish_anchor_needs_command" -f -a "fuzz" -d 'Coverage-guided fuzzing for Solana programs (powered by Crucible)'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "new" -d 'Creates a new program'
+complete -c anchor -n "__fish_anchor_needs_command" -f -a "debugger" -d 'Run tests under an instruction-level debugger'
+complete -c anchor -n "__fish_anchor_needs_command" -f -a "coverage" -d 'Generate source-level coverage from SBF register traces'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "idl" -d 'Commands for interacting with interface definitions'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "clean" -d 'Remove all artifacts from the generated directories except program keypairs'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "deploy" -d 'Deploys each program in the workspace'
@@ -45,7 +48,6 @@ complete -c anchor -n "__fish_anchor_needs_command" -f -a "cluster" -d 'Cluster 
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "config" -d 'Configuration management commands'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "shell" -d 'Starts a node shell with an Anchor client setup according to the local config'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "run" -d 'Runs the script defined by the current workspace\'s Anchor.toml'
-complete -c anchor -n "__fish_anchor_needs_command" -f -a "login" -d 'Saves an api token from the registry locally'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "keys" -d 'Program keypair commands'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "localnet" -d 'Localnet commands'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "account" -d 'Fetch and deserialize an account using the IDL provided'
@@ -58,10 +60,22 @@ complete -c anchor -n "__fish_anchor_needs_command" -f -a "logs" -d 'Stream tran
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "show-account" -d 'Show the contents of an account'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "keygen" -d 'Keypair generation and management'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "program" -d 'Program deployment and management commands'
+complete -c anchor -n "__fish_anchor_needs_command" -f -a "codama" -d 'Codama IDL integration commands'
+complete -c anchor -n "__fish_anchor_needs_command" -f -a "legacy-idl" -d '[DEPRECATED] Manage legacy on-chain IDL accounts. These commands interact with the old Anchor IDL instruction protocol and will be removed in a future release. Migrate to Program Metadata-based IDL management (`anchor idl`)'
 complete -c anchor -n "__fish_anchor_needs_command" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
-complete -c anchor -n "__fish_anchor_using_subcommand init" -l package-manager -d 'Package Manager to use' -r -f -a "{npm\t'Use npm as the package manager',yarn\t'Use yarn as the package manager',pnpm\t'Use pnpm as the package manager',bun\t'Use bun as the package manager'}"
-complete -c anchor -n "__fish_anchor_using_subcommand init" -s t -l template -d 'Rust program template to use' -r -f -a "{single\t'Program with a single `lib.rs` file (not recommended for production)',multiple\t'Program with multiple files for instructions, state... (recommended)'}"
-complete -c anchor -n "__fish_anchor_using_subcommand init" -l test-template -d 'Test template to use' -r -f -a "{mocha\t'Generate template for Mocha unit-test',jest\t'Generate template for Jest unit-test',rust\t'Generate template for Rust unit-test',mollusk\t'Generate template for Mollusk Rust unit-test'}"
+complete -c anchor -n "__fish_anchor_using_subcommand init" -l package-manager -d 'Package Manager to use. If omitted, detection cascades `pnpm` -> `yarn` -> `npm` and picks the first one on PATH. When set explicitly, the chosen binary must be installed' -r -f -a "npm\t'Use npm as the package manager'
+yarn\t'Use yarn as the package manager'
+pnpm\t'Use pnpm as the package manager'
+bun\t'Use bun as the package manager'"
+complete -c anchor -n "__fish_anchor_using_subcommand init" -s t -l template -d 'Rust program template to use' -r -f -a "single\t'Program with a single `lib.rs` file (not recommended for production)'
+multiple\t'Program with multiple files for instructions, state... (recommended)'"
+complete -c anchor -n "__fish_anchor_using_subcommand init" -l anchor-version -d 'Anchor template version to generate' -r -f -a "v1\t'Generate Anchor v1 templates'
+v2\t'Generate Anchor v2 templates'"
+complete -c anchor -n "__fish_anchor_using_subcommand init" -l test-template -d 'Test template to use' -r -f -a "mocha\t'Generate template for Mocha unit-test'
+jest\t'Generate template for Jest unit-test'
+rust\t'Generate template for Rust unit-test'
+mollusk\t'Generate template for Mollusk Rust unit-test'
+litesvm\t'Generate template for LiteSVM rust unit-test'"
 complete -c anchor -n "__fish_anchor_using_subcommand init" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand init" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand init" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
@@ -69,15 +83,16 @@ complete -c anchor -n "__fish_anchor_using_subcommand init" -s j -l javascript -
 complete -c anchor -n "__fish_anchor_using_subcommand init" -l no-install -d 'Don\'t install JavaScript dependencies'
 complete -c anchor -n "__fish_anchor_using_subcommand init" -l no-git -d 'Don\'t initialize git'
 complete -c anchor -n "__fish_anchor_using_subcommand init" -l force -d 'Initialize even if there are files'
+complete -c anchor -n "__fish_anchor_using_subcommand init" -l install-agent-skills -d 'Install Solana agent skills'
 complete -c anchor -n "__fish_anchor_using_subcommand init" -s h -l help -d 'Print help (see more with \'--help\')'
 complete -c anchor -n "__fish_anchor_using_subcommand build" -s i -l idl -d 'Output directory for the IDL' -r
 complete -c anchor -n "__fish_anchor_using_subcommand build" -s t -l idl-ts -d 'Output directory for the TypeScript IDL' -r
 complete -c anchor -n "__fish_anchor_using_subcommand build" -s p -l program-name -d 'Name of the program to build' -r
 complete -c anchor -n "__fish_anchor_using_subcommand build" -s s -l solana-version -d 'Version of the Solana toolchain to use. For --verifiable builds only' -r
 complete -c anchor -n "__fish_anchor_using_subcommand build" -s d -l docker-image -d 'Docker image to use. For --verifiable builds only' -r
-complete -c anchor -n "__fish_anchor_using_subcommand build" -s b -l bootstrap -d 'Bootstrap docker image from scratch, installing all requirements for verifiable builds. Only works for debian-based images' -r -f -a "{none\t'',debian\t''}"
+complete -c anchor -n "__fish_anchor_using_subcommand build" -s b -l bootstrap -d 'Bootstrap docker image from scratch, installing all requirements for verifiable builds. Only works for debian-based images' -r -f -a "none\t''
+debian\t''"
 complete -c anchor -n "__fish_anchor_using_subcommand build" -s e -l env -d 'Environment variables to pass into the docker container' -r
-complete -c anchor -n "__fish_anchor_using_subcommand build" -l arch -d 'Architecture to use when building the program' -r -f -a "{bpf\t'',sbf\t''}"
 complete -c anchor -n "__fish_anchor_using_subcommand build" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand build" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand build" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
@@ -91,6 +106,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand expand" -s p -l program-na
 complete -c anchor -n "__fish_anchor_using_subcommand expand" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand expand" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand expand" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand expand" -l stdout -d 'Write to stdout'
 complete -c anchor -n "__fish_anchor_using_subcommand expand" -s h -l help -d 'Print help (see more with \'--help\')'
 complete -c anchor -n "__fish_anchor_using_subcommand verify" -l repo-url -d 'The URL of the repository to verify against. Conflicts with `--current-dir`' -r
 complete -c anchor -n "__fish_anchor_using_subcommand verify" -l commit-hash -d 'The commit hash to verify against. Requires `--repo-url`' -r
@@ -101,9 +117,10 @@ complete -c anchor -n "__fish_anchor_using_subcommand verify" -l commitment -d '
 complete -c anchor -n "__fish_anchor_using_subcommand verify" -l current-dir -d 'Verify against the source code in the current directory. Conflicts with `--repo-url`'
 complete -c anchor -n "__fish_anchor_using_subcommand verify" -s h -l help -d 'Print help'
 complete -c anchor -n "__fish_anchor_using_subcommand test" -s p -l program-name -d 'Build and test only this program' -r
-complete -c anchor -n "__fish_anchor_using_subcommand test" -l arch -d 'Architecture to use when building the program' -r -f -a "{bpf\t'',sbf\t''}"
 complete -c anchor -n "__fish_anchor_using_subcommand test" -l run -d 'Run the test suites under the specified path' -r
-complete -c anchor -n "__fish_anchor_using_subcommand test" -l validator -d 'Validator type to use for local testing' -r -f -a "{surfpool\t'Use Surfpool validator (default)',legacy\t'Use Solana test validator'}"
+complete -c anchor -n "__fish_anchor_using_subcommand test" -l script -d 'Name of the script to run from [scripts] section (defaults to "test")' -r
+complete -c anchor -n "__fish_anchor_using_subcommand test" -l validator -d 'Validator type to use for local testing' -r -f -a "surfpool\t'Use Surfpool validator (default)'
+legacy\t'Use Solana test validator'"
 complete -c anchor -n "__fish_anchor_using_subcommand test" -s e -l env -d 'Environment variables to pass into the docker container' -r
 complete -c anchor -n "__fish_anchor_using_subcommand test" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand test" -l provider.wallet -d 'Wallet override' -r
@@ -114,36 +131,139 @@ complete -c anchor -n "__fish_anchor_using_subcommand test" -l skip-local-valida
 complete -c anchor -n "__fish_anchor_using_subcommand test" -l skip-build -d 'Flag to skip building the program in the workspace, use this to save time when running test and the program code is not altered'
 complete -c anchor -n "__fish_anchor_using_subcommand test" -l no-idl -d 'Do not build the IDL'
 complete -c anchor -n "__fish_anchor_using_subcommand test" -l detach -d 'Flag to keep the local validator running after tests to be able to check the transactions'
+complete -c anchor -n "__fish_anchor_using_subcommand test" -l profile -d 'Profile each test: record per-test SBF register traces and render flamegraph SVGs under target/anchor-v2-profile'
 complete -c anchor -n "__fish_anchor_using_subcommand test" -s h -l help -d 'Print help (see more with \'--help\')'
-complete -c anchor -n "__fish_anchor_using_subcommand new" -s t -l template -d 'Rust program template to use' -r -f -a "{single\t'Program with a single `lib.rs` file (not recommended for production)',multiple\t'Program with multiple files for instructions, state... (recommended)'}"
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -s C -l harness-dir -d 'Use this directory instead of ./fuzz/<program_name>/' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -f -a "init" -d 'Create a new fuzz harness for a program'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -f -a "run" -d 'Run a fuzz test'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -f -a "list" -d 'List available fuzz tests'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -f -a "show" -d 'View/replay crashes'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -f -a "tmin" -d 'Minimize a crash to smallest reproducing action sequence'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -f -a "cmin" -d 'Minimize corpus to smallest set preserving coverage'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and not __fish_seen_subcommand_from init run list show tmin cmin help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from init" -s C -l harness-dir -d 'Use this directory instead of ./fuzz/<program_name>/' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from init" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from init" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from init" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from init" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l binary-in -d 'Run a prebuilt harness binary directly' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l timeout -d 'Stop after N seconds' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -s j -l cores -d 'Run N parallel fuzzer workers' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l corpus-in -d 'Load seed corpus from directory' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l corpus-out -d 'Write corpus to directory' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l crashes-out -d 'Custom crash output directory' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l crashes-meta-out -d 'Custom directory for .meta.json files (default: same as crashes_out)' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l replay -d 'Replay a single crash/input file' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l seed -d 'Random seed for reproducible fuzzing' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l max-actions -d 'Maximum number of actions per fuzzer iteration (default: 8 stateless, 100 stateful)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l max-depth -d 'Maximum state depth (action chain length) in stateful mode (default: 15)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l pool-size -d 'State pool capacity in stateful mode (default: 256000)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l program-so -d 'Path to alternative program .so binary' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l symbols -d 'Path to debug binary with DWARF symbols (for source-level coverage with --coverage)' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l mode -d 'Remote fuzzing operational mode (dry_run, explore, coverage, reproduce, corpus_merge)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l lcov-out -d 'LCOV coverage output path' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -s C -l harness-dir -d 'Use this directory instead of ./fuzz/<program_name>/' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l release -d 'Build in release mode'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l coverage -d 'Enable coverage reporting (single-core only)'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l dry-run -d 'Validate setup without fuzzing'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l stop-on-crash -d 'Stop fuzzing on first crash'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l no-tracing -d 'Disable SVM register tracing for higher throughput (no coverage guidance)'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l stateful -d 'Stateful fuzzing: single action per iteration with state pool'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -l stats -d 'Show detailed performance stats (profiling, memory, pick/exec breakdown)'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from run" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from list" -s C -l harness-dir -d 'Use this directory instead of ./fuzz/<program_name>/' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from list" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from list" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from list" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from list" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from show" -l crashes-dir -d 'Custom crashes directory to read from' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from show" -l crash-meta-dir -d 'Custom directory for .meta.json files (default: same as crashes_dir)' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from show" -s C -l harness-dir -d 'Use this directory instead of ./fuzz/<program_name>/' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from show" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from show" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from show" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from show" -l replay -d 'Actually replay the crash (requires compiled binary)'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from show" -l regen -d 'Batch-regenerate .meta.json for all crashes (requires --replay)'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from show" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from tmin" -l crash-meta-dir -d 'Custom directory for .meta.json files (default: same as crashes directory)' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from tmin" -s C -l harness-dir -d 'Use this directory instead of ./fuzz/<program_name>/' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from tmin" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from tmin" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from tmin" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from tmin" -l all -d 'Minimize all crashes for this test'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from tmin" -l release -d 'Build in release mode'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from tmin" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from cmin" -l corpus-in -d 'Input corpus directory (flag alternative)' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from cmin" -l corpus-out -d 'Output directory (default: overwrite input)' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from cmin" -s C -l harness-dir -d 'Use this directory instead of ./fuzz/<program_name>/' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from cmin" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from cmin" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from cmin" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from cmin" -l release -d 'Build in release mode'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from cmin" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from help" -f -a "init" -d 'Create a new fuzz harness for a program'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from help" -f -a "run" -d 'Run a fuzz test'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from help" -f -a "list" -d 'List available fuzz tests'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from help" -f -a "show" -d 'View/replay crashes'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from help" -f -a "tmin" -d 'Minimize a crash to smallest reproducing action sequence'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from help" -f -a "cmin" -d 'Minimize corpus to smallest set preserving coverage'
+complete -c anchor -n "__fish_anchor_using_subcommand fuzz; and __fish_seen_subcommand_from help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c anchor -n "__fish_anchor_using_subcommand new" -s t -l template -d 'Rust program template to use' -r -f -a "single\t'Program with a single `lib.rs` file (not recommended for production)'
+multiple\t'Program with multiple files for instructions, state... (recommended)'"
+complete -c anchor -n "__fish_anchor_using_subcommand new" -l anchor-version -d 'Anchor template version to generate' -r -f -a "v1\t'Generate Anchor v1 templates'
+v2\t'Generate Anchor v2 templates'"
 complete -c anchor -n "__fish_anchor_using_subcommand new" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand new" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand new" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
 complete -c anchor -n "__fish_anchor_using_subcommand new" -l force -d 'Create new program even if there is already one'
 complete -c anchor -n "__fish_anchor_using_subcommand new" -s h -l help -d 'Print help (see more with \'--help\')'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -l provider.cluster -d 'Cluster override' -r
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -l provider.wallet -d 'Wallet override' -r
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -s h -l help -d 'Print help'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "init" -d 'Initializes a program\'s IDL account. Can only be run once'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "upgrade" -d 'Upgrades the IDL to the new file. An alias for first writing and then then setting the idl buffer account'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "build" -d 'Generates the IDL for the program using the compilation method'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "fetch" -d 'Fetches an IDL for the given address from a cluster. The address can be a program, IDL account, or IDL buffer'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "convert" -d 'Convert legacy IDLs (pre Anchor 0.30) to the new IDL spec'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "type" -d 'Generate TypeScript type for the IDL'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "close" -d 'Close a metadata account and recover rent'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "create-buffer" -d 'Create a buffer account for metadata'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "set-buffer-authority" -d 'Set a new authority on a buffer account'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "write-buffer" -d 'Write metadata using a buffer account'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch convert type close create-buffer set-buffer-authority write-buffer help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from init" -s f -l filepath -r
+complete -c anchor -n "__fish_anchor_using_subcommand debugger" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand debugger" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand debugger" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand debugger" -l skip-run -d 'Skip the build+test phase and open the TUI over existing traces'
+complete -c anchor -n "__fish_anchor_using_subcommand debugger" -l skip-build -d 'Skip `cargo build-sbf`'
+complete -c anchor -n "__fish_anchor_using_subcommand debugger" -l skip-lint -d 'Forwarded to the underlying `anchor test` invocation'
+complete -c anchor -n "__fish_anchor_using_subcommand debugger" -l gdb -d 'Drive tests over sbpf\'s gdb-stub instead of reading dumped trace files'
+complete -c anchor -n "__fish_anchor_using_subcommand debugger" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand coverage" -l output -d 'Output path for the LCOV file' -r
+complete -c anchor -n "__fish_anchor_using_subcommand coverage" -l trace-dir -d 'Directory containing register trace files' -r
+complete -c anchor -n "__fish_anchor_using_subcommand coverage" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand coverage" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand coverage" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand coverage" -l skip-run -d 'Skip the build+test phase and generate coverage from existing traces'
+complete -c anchor -n "__fish_anchor_using_subcommand coverage" -l skip-build -d 'Skip `cargo build-sbf`'
+complete -c anchor -n "__fish_anchor_using_subcommand coverage" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "init" -d 'Initializes a program\'s IDL account. Can only be run once'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "upgrade" -d 'Upgrades the IDL to the new file. An alias for first writing and then then setting the idl buffer account'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "build" -d 'Generates the IDL for the program using the compilation method'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "fetch" -d 'Fetches an IDL for the given program from a cluster'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "fetch-historical" -d 'Fetches historical IDL versions for the given program from a cluster'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "convert" -d 'Convert legacy IDLs (pre Anchor 0.30) to the new IDL spec'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "type" -d 'Generate TypeScript type for the IDL'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "close" -d 'Close a metadata account and recover rent'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "create-buffer" -d 'Create a buffer account for metadata'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "set-buffer-authority" -d 'Set a new authority on a buffer account'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "write-buffer" -d 'Write metadata using a buffer account'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and not __fish_seen_subcommand_from init upgrade build fetch fetch-historical convert type close create-buffer set-buffer-authority write-buffer help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from init" -s f -l filepath -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from init" -l priority-fee -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from init" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from init" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from init" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from init" -l non-canonical -d 'Create non-canonical metadata account (third-party metadata)'
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from init" -s h -l help -d 'Print help'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from upgrade" -s f -l filepath -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from upgrade" -s f -l filepath -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from upgrade" -l priority-fee -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from upgrade" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from upgrade" -l provider.wallet -d 'Wallet override' -r
@@ -164,13 +284,29 @@ complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subco
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch" -l non-canonical -d 'Fetch non-canonical metadata account (third-party metadata)'
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch" -s h -l help -d 'Print help'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from convert" -s o -l out -d 'Output file for the IDL (stdout if not specified)' -r
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from convert" -s p -l program-id -d 'Address to use (defaults to `metadata.address` value)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l authority -d 'Fetch authority-scoped PMP metadata account history for this authority' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l slot -d 'Fetch IDL at specific slot' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l before -d 'Fetch IDL before this date (YYYY-MM-DD)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l after -d 'Fetch IDL after this date (YYYY-MM-DD)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l out-dir -d 'Output directory for fetched versions (defaults to the current directory)' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l rpc-workers -d 'Max parallel RPC workers for transaction fetches' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l rpc-max-retries -d 'Max retry attempts per transaction on 429/timeout errors' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l rpc-retry-backoff-ms -d 'Base backoff in milliseconds between retries (doubled each attempt)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l max-signatures -d 'Hard cap on signatures fetched per history source' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l no-parallel -d 'Force sequential transaction fetches (equivalent to --rpc-workers 1)'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -l verbose -d 'Print diagnostic progress messages'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from fetch-historical" -s h -l help -d 'Print help (see more with \'--help\')'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from convert" -s o -l out -d 'Output file for the IDL (stdout if not specified)' -r -F
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from convert" -s p -l program-id -d 'Program id to initialize IDL for. If not provided, discovers program ID from IDL' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from convert" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from convert" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from convert" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from convert" -l to-legacy -d 'Convert a current-spec IDL back to the legacy (pre Anchor v0.30) format. Without this flag the converter runs in the default direction (legacy -> current)'
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from convert" -s h -l help -d 'Print help'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from type" -s o -l out -d 'Output file for the IDL (stdout if not specified)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from type" -s o -l out -d 'Output file for the IDL (stdout if not specified)' -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from type" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from type" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from type" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
@@ -181,7 +317,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subco
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from close" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from close" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from close" -s h -l help -d 'Print help'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from create-buffer" -s f -l filepath -d 'Path to the metadata file' -r
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from create-buffer" -s f -l filepath -d 'Path to the metadata file' -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from create-buffer" -l priority-fee -d 'Priority fees in micro-lamports per compute unit' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from create-buffer" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from create-buffer" -l provider.wallet -d 'Wallet override' -r
@@ -204,7 +340,8 @@ complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subco
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from help" -f -a "init" -d 'Initializes a program\'s IDL account. Can only be run once'
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from help" -f -a "upgrade" -d 'Upgrades the IDL to the new file. An alias for first writing and then then setting the idl buffer account'
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from help" -f -a "build" -d 'Generates the IDL for the program using the compilation method'
-complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from help" -f -a "fetch" -d 'Fetches an IDL for the given address from a cluster. The address can be a program, IDL account, or IDL buffer'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from help" -f -a "fetch" -d 'Fetches an IDL for the given program from a cluster'
+complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from help" -f -a "fetch-historical" -d 'Fetches historical IDL versions for the given program from a cluster'
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from help" -f -a "convert" -d 'Convert legacy IDLs (pre Anchor 0.30) to the new IDL spec'
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from help" -f -a "type" -d 'Generate TypeScript type for the IDL'
 complete -c anchor -n "__fish_anchor_using_subcommand idl; and __fish_seen_subcommand_from help" -f -a "close" -d 'Close a metadata account and recover rent'
@@ -217,7 +354,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand clean" -l provider.wallet 
 complete -c anchor -n "__fish_anchor_using_subcommand clean" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
 complete -c anchor -n "__fish_anchor_using_subcommand clean" -s h -l help -d 'Print help'
 complete -c anchor -n "__fish_anchor_using_subcommand deploy" -s p -l program-name -d 'Only deploy this program' -r
-complete -c anchor -n "__fish_anchor_using_subcommand deploy" -l program-keypair -d 'Keypair of the program (filepath) (requires program-name)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand deploy" -l program-keypair -d 'Keypair of the program (filepath) (requires program-name)' -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand deploy" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand deploy" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand deploy" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
@@ -262,7 +399,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand config; and __fish_seen_su
 complete -c anchor -n "__fish_anchor_using_subcommand config; and __fish_seen_subcommand_from get" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
 complete -c anchor -n "__fish_anchor_using_subcommand config; and __fish_seen_subcommand_from get" -s h -l help -d 'Print help'
 complete -c anchor -n "__fish_anchor_using_subcommand config; and __fish_seen_subcommand_from set" -s u -l url -d 'Cluster to connect to (custom URL). Use -um, -ud, -ut, -ul for standard clusters' -r
-complete -c anchor -n "__fish_anchor_using_subcommand config; and __fish_seen_subcommand_from set" -s k -l keypair -d 'Path to wallet keypair file to update the Anchor.toml file with' -r
+complete -c anchor -n "__fish_anchor_using_subcommand config; and __fish_seen_subcommand_from set" -s k -l keypair -d 'Path to wallet keypair file to update the Anchor.toml file with' -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand config; and __fish_seen_subcommand_from set" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand config; and __fish_seen_subcommand_from set" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand config; and __fish_seen_subcommand_from set" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
@@ -278,10 +415,6 @@ complete -c anchor -n "__fish_anchor_using_subcommand run" -l provider.cluster -
 complete -c anchor -n "__fish_anchor_using_subcommand run" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand run" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
 complete -c anchor -n "__fish_anchor_using_subcommand run" -s h -l help -d 'Print help'
-complete -c anchor -n "__fish_anchor_using_subcommand login" -l provider.cluster -d 'Cluster override' -r
-complete -c anchor -n "__fish_anchor_using_subcommand login" -l provider.wallet -d 'Wallet override' -r
-complete -c anchor -n "__fish_anchor_using_subcommand login" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
-complete -c anchor -n "__fish_anchor_using_subcommand login" -s h -l help -d 'Print help'
 complete -c anchor -n "__fish_anchor_using_subcommand keys; and not __fish_seen_subcommand_from list sync help" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand keys; and not __fish_seen_subcommand_from list sync help" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand keys; and not __fish_seen_subcommand_from list sync help" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
@@ -301,8 +434,8 @@ complete -c anchor -n "__fish_anchor_using_subcommand keys; and __fish_seen_subc
 complete -c anchor -n "__fish_anchor_using_subcommand keys; and __fish_seen_subcommand_from help" -f -a "list" -d 'List all of the program keys'
 complete -c anchor -n "__fish_anchor_using_subcommand keys; and __fish_seen_subcommand_from help" -f -a "sync" -d 'Sync program `declare_id!` pubkeys with the program\'s actual pubkey'
 complete -c anchor -n "__fish_anchor_using_subcommand keys; and __fish_seen_subcommand_from help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
-complete -c anchor -n "__fish_anchor_using_subcommand localnet" -l arch -d 'Architecture to use when building the program' -r -f -a "{bpf\t'',sbf\t''}"
-complete -c anchor -n "__fish_anchor_using_subcommand localnet" -l validator -d 'Validator type to use for local testing' -r -f -a "{surfpool\t'Use Surfpool validator (default)',legacy\t'Use Solana test validator'}"
+complete -c anchor -n "__fish_anchor_using_subcommand localnet" -l validator -d 'Validator type to use for local testing' -r -f -a "surfpool\t'Use Surfpool validator (default)'
+legacy\t'Use Solana test validator'"
 complete -c anchor -n "__fish_anchor_using_subcommand localnet" -s e -l env -d 'Environment variables to pass into the docker container' -r
 complete -c anchor -n "__fish_anchor_using_subcommand localnet" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand localnet" -l provider.wallet -d 'Wallet override' -r
@@ -312,7 +445,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand localnet" -l skip-deploy -
 complete -c anchor -n "__fish_anchor_using_subcommand localnet" -l skip-lint -d 'True if the build should not fail even if there are no "CHECK" comments where normally required'
 complete -c anchor -n "__fish_anchor_using_subcommand localnet" -l ignore-keys -d 'Skip checking for program ID mismatch between keypair and declare_id'
 complete -c anchor -n "__fish_anchor_using_subcommand localnet" -s h -l help -d 'Print help (see more with \'--help\')'
-complete -c anchor -n "__fish_anchor_using_subcommand account" -l idl -d 'IDL to use (defaults to workspace IDL)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand account" -l idl -d 'Path of IDL to use (defaults to workspace IDL)' -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand account" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand account" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand account" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
@@ -345,7 +478,8 @@ complete -c anchor -n "__fish_anchor_using_subcommand logs" -l commitment -d 'Co
 complete -c anchor -n "__fish_anchor_using_subcommand logs" -l include-votes -d 'Include vote transactions when monitoring all transactions'
 complete -c anchor -n "__fish_anchor_using_subcommand logs" -s h -l help -d 'Print help'
 complete -c anchor -n "__fish_anchor_using_subcommand show-account" -s o -l output-file -d 'Write the account data to this file' -r -F
-complete -c anchor -n "__fish_anchor_using_subcommand show-account" -l output -d 'Return information in specified output format' -r -f -a "{json\t'',json-compact\t''}"
+complete -c anchor -n "__fish_anchor_using_subcommand show-account" -l output -d 'Return information in specified output format' -r -f -a "json\t''
+json-compact\t''"
 complete -c anchor -n "__fish_anchor_using_subcommand show-account" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand show-account" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand show-account" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
@@ -360,7 +494,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand keygen; and not __fish_see
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and not __fish_seen_subcommand_from new pubkey recover verify help" -f -a "recover" -d 'Recover a keypair from a seed phrase'
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and not __fish_seen_subcommand_from new pubkey recover verify help" -f -a "verify" -d 'Verify a keypair can sign and verify a message'
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and not __fish_seen_subcommand_from new pubkey recover verify help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
-complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from new" -s o -l outfile -d 'Path to generated keypair file' -r
+complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from new" -s o -l outfile -d 'Path to generated keypair file' -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from new" -s w -l word-count -d 'Number of words in the mnemonic phrase [possible values: 12, 15, 18, 21, 24]' -r
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from new" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from new" -l provider.wallet -d 'Wallet override' -r
@@ -373,7 +507,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_su
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from pubkey" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from pubkey" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from pubkey" -s h -l help -d 'Print help'
-complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from recover" -s o -l outfile -d 'Path to recovered keypair file' -r
+complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from recover" -s o -l outfile -d 'Path to recovered keypair file' -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from recover" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from recover" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand keygen; and __fish_seen_subcommand_from recover" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
@@ -405,7 +539,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand program; and not __fish_se
 complete -c anchor -n "__fish_anchor_using_subcommand program; and not __fish_seen_subcommand_from deploy write-buffer set-buffer-authority set-upgrade-authority show upgrade dump close extend help" -f -a "extend" -d 'Extend the length of an upgradeable program'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and not __fish_seen_subcommand_from deploy write-buffer set-buffer-authority set-upgrade-authority show upgrade dump close extend help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -s p -l program-name -d 'Program name to deploy (from workspace). Used when program_filepath is not provided' -r
-complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l program-keypair -d 'Program keypair filepath (defaults to target/deploy/{program_name}-keypair.json)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l program-keypair -d 'Program keypair filepath (defaults to target/deploy/{program_name}-keypair.json)' -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l upgrade-authority -d 'Upgrade authority keypair (defaults to configured wallet)' -r
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l program-id -d 'Program id to deploy to (derived from program-keypair if not specified)' -r
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l buffer -d 'Buffer account to use for deployment' -r
@@ -413,6 +547,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_s
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l use-rpc -d 'Send write transactions through RPC instead of TPU'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l no-idl -d 'Don\'t upload IDL during deployment (IDL is uploaded by default)'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -l final -d 'Make the program immutable after deployment (cannot be upgraded)'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from deploy" -s h -l help -d 'Print help'
@@ -444,7 +579,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_s
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from show" -l get-buffers -d 'Get account information from the Solana config file'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from show" -l all -d 'Show all accounts'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from show" -s h -l help -d 'Print help'
-complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from upgrade" -l program-filepath -d 'Program filepath (e.g., target/deploy/my_program.so). If not provided, discovers from workspace' -r
+complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from upgrade" -l program-filepath -d 'Program filepath (e.g., target/deploy/my_program.so). If not provided, discovers from workspace' -r -F
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from upgrade" -s p -l program-name -d 'Program name to upgrade (from workspace). Used when program_filepath is not provided' -r
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from upgrade" -l buffer -d 'Existing buffer account to upgrade from. If not provided, auto-discovers program from workspace' -r
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from upgrade" -l upgrade-authority -d 'Upgrade authority (defaults to configured wallet)' -r
@@ -452,6 +587,7 @@ complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_s
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from upgrade" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from upgrade" -l provider.wallet -d 'Wallet override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from upgrade" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from upgrade" -l use-rpc -d 'Send write transactions through RPC instead of TPU'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from upgrade" -s h -l help -d 'Print help'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from dump" -l provider.cluster -d 'Cluster override' -r
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from dump" -l provider.wallet -d 'Wallet override' -r
@@ -480,40 +616,154 @@ complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_s
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from help" -f -a "close" -d 'Close a program or buffer account and withdraw all lamports'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from help" -f -a "extend" -d 'Extend the length of an upgradeable program'
 complete -c anchor -n "__fish_anchor_using_subcommand program; and __fish_seen_subcommand_from help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "init" -d 'Initializes a workspace'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "build" -d 'Builds the workspace'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "expand" -d 'Expands macros (wrapper around cargo expand)'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "verify" -d 'Verifies the on-chain bytecode matches the locally compiled artifact. Run this command inside a program subdirectory, i.e., in the dir containing the program\'s Cargo.toml'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "test" -d 'Runs integration tests'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "new" -d 'Creates a new program'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "idl" -d 'Commands for interacting with interface definitions'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "clean" -d 'Remove all artifacts from the generated directories except program keypairs'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "deploy" -d 'Deploys each program in the workspace'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "migrate" -d 'Runs the deploy migration script'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "upgrade" -d 'Deploys, initializes an IDL, and migrates all in one command. Upgrades a single program. The configured wallet must be the upgrade authority'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "airdrop" -d 'Request an airdrop of SOL'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "cluster" -d 'Cluster commands'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "config" -d 'Configuration management commands'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "shell" -d 'Starts a node shell with an Anchor client setup according to the local config'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "run" -d 'Runs the script defined by the current workspace\'s Anchor.toml'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "login" -d 'Saves an api token from the registry locally'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "keys" -d 'Program keypair commands'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "localnet" -d 'Localnet commands'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "account" -d 'Fetch and deserialize an account using the IDL provided'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "completions" -d 'Generates shell completions'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "address" -d 'Get your public key'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "balance" -d 'Get your balance'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "epoch" -d 'Get current epoch'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "epoch-info" -d 'Get information about the current epoch'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "logs" -d 'Stream transaction logs'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "show-account" -d 'Show the contents of an account'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "keygen" -d 'Keypair generation and management'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "program" -d 'Program deployment and management commands'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test new idl clean deploy migrate upgrade airdrop cluster config shell run login keys localnet account completions address balance epoch epoch-info logs show-account keygen program help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and not __fish_seen_subcommand_from convert generate help" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and not __fish_seen_subcommand_from convert generate help" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and not __fish_seen_subcommand_from convert generate help" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and not __fish_seen_subcommand_from convert generate help" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and not __fish_seen_subcommand_from convert generate help" -f -a "convert" -d 'Convert an Anchor IDL JSON file (post-0.30 spec) into a Codama IDL rooted at a `rootNode`'
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and not __fish_seen_subcommand_from convert generate help" -f -a "generate" -d 'Convert an Anchor IDL and run Codama renderers to produce client libraries in one or more languages'
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and not __fish_seen_subcommand_from convert generate help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from convert" -s o -l out -d 'Output file (stdout if not specified)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from convert" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from convert" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from convert" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from convert" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from generate" -s l -l language -d 'Languages to generate clients for. Repeat the flag or comma- separate values: `-l js,go -l rust`' -r -f -a "js\t''
+js-umi\t''
+rust\t''
+go\t''"
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from generate" -s p -l path -d 'Base output directory; per-language clients are written to `<path>/<language>`' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from generate" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from generate" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from generate" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from generate" -s h -l help -d 'Print help (see more with \'--help\')'
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from help" -f -a "convert" -d 'Convert an Anchor IDL JSON file (post-0.30 spec) into a Codama IDL rooted at a `rootNode`'
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from help" -f -a "generate" -d 'Convert an Anchor IDL and run Codama renderers to produce client libraries in one or more languages'
+complete -c anchor -n "__fish_anchor_using_subcommand codama; and __fish_seen_subcommand_from help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -f -a "close" -d '[DEPRECATED] Close the legacy IDL account and recover rent'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -f -a "write-buffer" -d '[DEPRECATED] Write an IDL into a legacy buffer account. Use with set-buffer to upgrade'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -f -a "set-buffer" -d '[DEPRECATED] Set a new IDL buffer for the program'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -f -a "set-authority" -d '[DEPRECATED] Set a new authority on the legacy IDL account'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -f -a "erase-authority" -d '[DEPRECATED] Remove the ability to modify the legacy IDL account'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -f -a "authority" -d '[DEPRECATED] Output the authority for the legacy IDL account'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -f -a "init" -d '[DEPRECATED] Initialize the legacy on-chain IDL account for the first time'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -f -a "upgrade" -d '[DEPRECATED] Upgrade the legacy IDL (write buffer → set buffer → close buffer)'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -f -a "fetch" -d '[DEPRECATED] Fetch the IDL from a legacy on-chain IdlAccount'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and not __fish_seen_subcommand_from close write-buffer set-buffer set-authority erase-authority authority init upgrade fetch help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from close" -l idl-address -d 'The IDL account to close. If none is given, the IDL account derived from program_id is used' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from close" -l priority-fee -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from close" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from close" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from close" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from close" -l print-only -d 'Print the instruction in base64 without executing it. Useful for multisig execution when the local wallet keypair is not available'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from close" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from write-buffer" -s f -l filepath -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from write-buffer" -l priority-fee -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from write-buffer" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from write-buffer" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from write-buffer" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from write-buffer" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-buffer" -s b -l buffer -d 'Address of the buffer account to set as the IDL on the program' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-buffer" -l priority-fee -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-buffer" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-buffer" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-buffer" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-buffer" -l print-only -d 'Print the instruction in base64 without executing it'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-buffer" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-authority" -s p -l program-id -d 'Program to change the IDL authority' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-authority" -s n -l new-authority -d 'New authority of the IDL account' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-authority" -l priority-fee -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-authority" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-authority" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-authority" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-authority" -l print-only -d 'Print the instruction in base64 without executing it'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from set-authority" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from erase-authority" -s p -l program-id -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from erase-authority" -l priority-fee -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from erase-authority" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from erase-authority" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from erase-authority" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from erase-authority" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from authority" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from authority" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from authority" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from authority" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from init" -s f -l filepath -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from init" -l priority-fee -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from init" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from init" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from init" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from init" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from upgrade" -s f -l filepath -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from upgrade" -l priority-fee -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from upgrade" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from upgrade" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from upgrade" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from upgrade" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from fetch" -s o -l out -d 'Path to write the fetched IDL. Prints to stdout if omitted' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from fetch" -l provider.cluster -d 'Cluster override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from fetch" -l provider.wallet -d 'Wallet override' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from fetch" -l commitment -d 'Commitment override (valid values: processed, confirmed, finalized)' -r
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from fetch" -s h -l help -d 'Print help'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from help" -f -a "close" -d '[DEPRECATED] Close the legacy IDL account and recover rent'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from help" -f -a "write-buffer" -d '[DEPRECATED] Write an IDL into a legacy buffer account. Use with set-buffer to upgrade'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from help" -f -a "set-buffer" -d '[DEPRECATED] Set a new IDL buffer for the program'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from help" -f -a "set-authority" -d '[DEPRECATED] Set a new authority on the legacy IDL account'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from help" -f -a "erase-authority" -d '[DEPRECATED] Remove the ability to modify the legacy IDL account'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from help" -f -a "authority" -d '[DEPRECATED] Output the authority for the legacy IDL account'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from help" -f -a "init" -d '[DEPRECATED] Initialize the legacy on-chain IDL account for the first time'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from help" -f -a "upgrade" -d '[DEPRECATED] Upgrade the legacy IDL (write buffer → set buffer → close buffer)'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from help" -f -a "fetch" -d '[DEPRECATED] Fetch the IDL from a legacy on-chain IdlAccount'
+complete -c anchor -n "__fish_anchor_using_subcommand legacy-idl; and __fish_seen_subcommand_from help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "init" -d 'Initializes a workspace'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "build" -d 'Builds the workspace'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "expand" -d 'Expands macros (wrapper around cargo expand)'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "verify" -d 'Verifies the on-chain bytecode matches the locally compiled artifact. Run this command inside a program subdirectory, i.e., in the dir containing the program\'s Cargo.toml'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "test" -d 'Runs integration tests'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "fuzz" -d 'Coverage-guided fuzzing for Solana programs (powered by Crucible)'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "new" -d 'Creates a new program'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "debugger" -d 'Run tests under an instruction-level debugger'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "coverage" -d 'Generate source-level coverage from SBF register traces'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "idl" -d 'Commands for interacting with interface definitions'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "clean" -d 'Remove all artifacts from the generated directories except program keypairs'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "deploy" -d 'Deploys each program in the workspace'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "migrate" -d 'Runs the deploy migration script'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "upgrade" -d 'Deploys, initializes an IDL, and migrates all in one command. Upgrades a single program. The configured wallet must be the upgrade authority'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "airdrop" -d 'Request an airdrop of SOL'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "cluster" -d 'Cluster commands'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "config" -d 'Configuration management commands'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "shell" -d 'Starts a node shell with an Anchor client setup according to the local config'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "run" -d 'Runs the script defined by the current workspace\'s Anchor.toml'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "keys" -d 'Program keypair commands'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "localnet" -d 'Localnet commands'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "account" -d 'Fetch and deserialize an account using the IDL provided'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "completions" -d 'Generates shell completions'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "address" -d 'Get your public key'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "balance" -d 'Get your balance'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "epoch" -d 'Get current epoch'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "epoch-info" -d 'Get information about the current epoch'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "logs" -d 'Stream transaction logs'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "show-account" -d 'Show the contents of an account'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "keygen" -d 'Keypair generation and management'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "program" -d 'Program deployment and management commands'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "codama" -d 'Codama IDL integration commands'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "legacy-idl" -d '[DEPRECATED] Manage legacy on-chain IDL accounts. These commands interact with the old Anchor IDL instruction protocol and will be removed in a future release. Migrate to Program Metadata-based IDL management (`anchor idl`)'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and not __fish_seen_subcommand_from init build expand verify test fuzz new debugger coverage idl clean deploy migrate upgrade airdrop cluster config shell run keys localnet account completions address balance epoch epoch-info logs show-account keygen program codama legacy-idl help" -f -a "help" -d 'Print this message or the help of the given subcommand(s)'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from fuzz" -f -a "init" -d 'Create a new fuzz harness for a program'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from fuzz" -f -a "run" -d 'Run a fuzz test'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from fuzz" -f -a "list" -d 'List available fuzz tests'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from fuzz" -f -a "show" -d 'View/replay crashes'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from fuzz" -f -a "tmin" -d 'Minimize a crash to smallest reproducing action sequence'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from fuzz" -f -a "cmin" -d 'Minimize corpus to smallest set preserving coverage'
 complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from idl" -f -a "init" -d 'Initializes a program\'s IDL account. Can only be run once'
 complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from idl" -f -a "upgrade" -d 'Upgrades the IDL to the new file. An alias for first writing and then then setting the idl buffer account'
 complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from idl" -f -a "build" -d 'Generates the IDL for the program using the compilation method'
-complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from idl" -f -a "fetch" -d 'Fetches an IDL for the given address from a cluster. The address can be a program, IDL account, or IDL buffer'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from idl" -f -a "fetch" -d 'Fetches an IDL for the given program from a cluster'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from idl" -f -a "fetch-historical" -d 'Fetches historical IDL versions for the given program from a cluster'
 complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from idl" -f -a "convert" -d 'Convert legacy IDLs (pre Anchor 0.30) to the new IDL spec'
 complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from idl" -f -a "type" -d 'Generate TypeScript type for the IDL'
 complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from idl" -f -a "close" -d 'Close a metadata account and recover rent'
@@ -538,3 +788,14 @@ complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subc
 complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from program" -f -a "dump" -d 'Write the program data to a file'
 complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from program" -f -a "close" -d 'Close a program or buffer account and withdraw all lamports'
 complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from program" -f -a "extend" -d 'Extend the length of an upgradeable program'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from codama" -f -a "convert" -d 'Convert an Anchor IDL JSON file (post-0.30 spec) into a Codama IDL rooted at a `rootNode`'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from codama" -f -a "generate" -d 'Convert an Anchor IDL and run Codama renderers to produce client libraries in one or more languages'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from legacy-idl" -f -a "close" -d '[DEPRECATED] Close the legacy IDL account and recover rent'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from legacy-idl" -f -a "write-buffer" -d '[DEPRECATED] Write an IDL into a legacy buffer account. Use with set-buffer to upgrade'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from legacy-idl" -f -a "set-buffer" -d '[DEPRECATED] Set a new IDL buffer for the program'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from legacy-idl" -f -a "set-authority" -d '[DEPRECATED] Set a new authority on the legacy IDL account'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from legacy-idl" -f -a "erase-authority" -d '[DEPRECATED] Remove the ability to modify the legacy IDL account'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from legacy-idl" -f -a "authority" -d '[DEPRECATED] Output the authority for the legacy IDL account'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from legacy-idl" -f -a "init" -d '[DEPRECATED] Initialize the legacy on-chain IDL account for the first time'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from legacy-idl" -f -a "upgrade" -d '[DEPRECATED] Upgrade the legacy IDL (write buffer → set buffer → close buffer)'
+complete -c anchor -n "__fish_anchor_using_subcommand help; and __fish_seen_subcommand_from legacy-idl" -f -a "fetch" -d '[DEPRECATED] Fetch the IDL from a legacy on-chain IdlAccount'
